@@ -1,0 +1,1 @@
+"""Askey RTF3505VW Home Assistant integration."""

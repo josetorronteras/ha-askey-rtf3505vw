@@ -1,0 +1,1 @@
+"""Config flow for the Askey RTF3505VW integration."""
