@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configura el router Askey RTF3505VW",
+        "description": "Introduce los datos de acceso de tu router Movistar.",
+        "data": {
+          "host": "Dirección IP del router",
+          "password": "Contraseña",
+          "scan_interval": "Intervalo de escaneo (segundos)"
+        },
+        "data_description": {
+          "host": "Normalmente 192.168.1.1",
+          "password": "La contraseña impresa en la pegatina del router",
+          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)"
+        }
+      },
+      "reconfigure": {
+        "title": "Actualiza la configuración",
+        "data": {
+          "host": "Dirección IP del router",
+          "password": "Contraseña",
+          "scan_interval": "Intervalo de escaneo (segundos)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Nueva contraseña requerida",
+        "description": "La contraseña del router {host} ha cambiado. Introdúcela de nuevo.",
+        "data": {
+          "password": "Contraseña"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar al router. Comprueba la IP y que esté encendido.",
+      "invalid_auth": "Contraseña incorrecta.",
+      "unknown": "Error inesperado."
+    },
+    "abort": {
+      "already_configured": "Este router ya está configurado.",
+      "reauth_successful": "Reautenticación correcta."
+    }
+  }
+}
