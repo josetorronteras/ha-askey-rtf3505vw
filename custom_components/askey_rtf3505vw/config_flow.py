@@ -25,6 +25,15 @@ STEP_USER_SCHEMA = vol.Schema(
     }
 )
 
+STEP_RECONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_PASSWORD): str,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
+            int, vol.Range(min=10, max=3600)
+        ),
+    }
+)
+
 STEP_REAUTH_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PASSWORD): str,
@@ -78,11 +87,16 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Handle reconfiguration of an existing entry."""
+        """Handle reconfiguration of an existing entry (password and scan interval only).
+
+        The host is intentionally not reconfigurable — changing it would mean
+        pointing to a different router, which requires a fresh setup.
+        """
         errors: dict[str, str] = {}
+        reconfigure_entry = self._get_reconfigure_entry()
 
         if user_input is not None:
-            host = user_input[CONF_HOST]
+            host = reconfigure_entry.data[CONF_HOST]
             password = user_input[CONF_PASSWORD]
 
             try:
@@ -92,15 +106,19 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if ok:
                     return self.async_update_reload_and_abort(
-                        self._get_reconfigure_entry(),
+                        reconfigure_entry,
                         data_updates=user_input,
                     )
                 errors["base"] = "invalid_auth"
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=STEP_USER_SCHEMA,
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_RECONFIGURE_SCHEMA,
+                reconfigure_entry.data,
+            ),
             errors=errors,
+            description_placeholders={"host": reconfigure_entry.data[CONF_HOST]},
         )
 
     async def async_step_reauth(

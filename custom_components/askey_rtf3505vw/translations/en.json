@@ -16,9 +16,9 @@
         }
       },
       "reconfigure": {
-        "title": "Update configuration",
+        "title": "Update configuration for {host}",
+        "description": "Update the password or scan interval. To change the router IP, remove the integration and add it again.",
         "data": {
-          "host": "Router IP address",
           "password": "Password",
           "scan_interval": "Scan interval (seconds)"
         }

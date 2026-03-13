@@ -16,9 +16,9 @@
         }
       },
       "reconfigure": {
-        "title": "Actualiza la configuración",
+        "title": "Actualiza la configuración de {host}",
+        "description": "Modifica la contraseña o el intervalo de escaneo. Para cambiar la IP del router elimina la integración y vuelve a añadirla.",
         "data": {
-          "host": "Dirección IP del router",
           "password": "Contraseña",
           "scan_interval": "Intervalo de escaneo (segundos)"
         }
