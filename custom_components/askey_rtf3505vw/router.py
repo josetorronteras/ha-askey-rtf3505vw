@@ -143,6 +143,10 @@ class AskeyRouterClient:
             _LOGGER.error("Login failed: %s", err)
             return False
 
+    async def async_close(self) -> None:
+        """Close the underlying aiohttp session."""
+        await self._session.close()
+
     async def async_test_credentials(self) -> bool:
         return await self.async_login()
 
