@@ -21,6 +21,9 @@
         "data": {
           "password": "Password",
           "scan_interval": "Scan interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the router (minimum 10 s)"
         }
       },
       "reauth_confirm": {
