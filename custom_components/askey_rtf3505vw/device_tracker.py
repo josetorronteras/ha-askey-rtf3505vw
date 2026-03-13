@@ -1,8 +1,6 @@
 """Device tracker platform for the Askey RTF3505VW integration."""
 from __future__ import annotations
 
-import logging
-
 from homeassistant.components.device_tracker import SourceType
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -14,8 +12,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import AskeyCoordinator
 from .router import RouterDevice
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -29,14 +25,10 @@ async def async_setup_entry(
     @callback
     def _add_new_devices() -> None:
         """Create a tracker entity for every MAC not yet tracked."""
-        new_entities = [
-            AskeyDeviceTracker(coordinator, mac)
-            for mac in coordinator.data
-            if mac not in tracked
-        ]
-        if new_entities:
-            tracked.update(t._mac for t in new_entities)
-            async_add_entities(new_entities)
+        new_macs = [mac for mac in coordinator.data if mac not in tracked]
+        if new_macs:
+            tracked.update(new_macs)
+            async_add_entities([AskeyDeviceTracker(coordinator, mac) for mac in new_macs])
 
     _add_new_devices()
     entry.async_on_unload(coordinator.async_add_listener(_add_new_devices))

@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .coordinator import AskeyCoordinator
+from .router import IFACE_WIFI_24, IFACE_WIFI_5
 
 TO_REDACT = {CONF_PASSWORD}
 
@@ -31,8 +32,8 @@ async def async_get_config_entry_diagnostics(
         "devices": {
             "total": len(coordinator.data),
             "wired": sum(1 for d in coordinator.data.values() if d.is_wired),
-            "wifi_24": sum(1 for d in coordinator.data.values() if d.interface == "wl0"),
-            "wifi_5": sum(1 for d in coordinator.data.values() if d.interface == "wl1"),
+            "wifi_24": sum(1 for d in coordinator.data.values() if d.interface == IFACE_WIFI_24),
+            "wifi_5": sum(1 for d in coordinator.data.values() if d.interface == IFACE_WIFI_5),
             "guest": sum(1 for d in coordinator.data.values() if d.is_guest),
         },
     }
