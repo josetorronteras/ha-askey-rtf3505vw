@@ -29,6 +29,7 @@ IFACE_WIFI_5 = "wl1"
 
 _LOGGER = logging.getLogger(__name__)
 _MAC_RE = re.compile(r"^([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}$")
+_SESSION_KEY_RE = re.compile(r"var sessionKey='(\d+)'")
 
 
 def _is_valid_mac(value: str) -> bool:
@@ -149,6 +150,28 @@ class AskeyRouterClient:
 
     async def async_test_credentials(self) -> bool:
         return await self.async_login()
+
+    async def async_reboot(self) -> bool:
+        """Reboot the router. Returns True if the command was sent successfully.
+
+        Step 1: GET /resetrouter.html to extract the CSRF sessionKey.
+        Step 2: GET /rebootinfo.cgi?sessionKey=XXXX to trigger the reboot.
+        """
+        html = await self._fetch("/resetrouter.html")
+        if not html:
+            _LOGGER.error("Reboot: could not fetch /resetrouter.html")
+            return False
+
+        match = _SESSION_KEY_RE.search(html)
+        if not match:
+            _LOGGER.error("Reboot: sessionKey not found in /resetrouter.html")
+            return False
+
+        session_key = match.group(1)
+        _LOGGER.debug("Reboot: sessionKey=%s", session_key)
+        await self._fetch(f"/rebootinfo.cgi?sessionKey={session_key}")
+        _LOGGER.info("Reboot command sent to router")
+        return True
 
     async def async_get_devices(self) -> dict[str, RouterDevice]:
         """Return {mac: RouterDevice} for every device currently on the network."""

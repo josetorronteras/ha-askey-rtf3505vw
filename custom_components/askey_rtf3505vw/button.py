@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import re
 
 from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +13,6 @@ from .const import DOMAIN
 from .coordinator import AskeyCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-_SESSION_KEY_RE = re.compile(r"var sessionKey='(\d+)'")
 
 
 async def async_setup_entry(
@@ -48,20 +46,4 @@ class AskeyRebootButton(ButtonEntity):
         )
 
     async def async_press(self) -> None:
-        """Extract the CSRF sessionKey from /resetrouter.html then trigger reboot."""
-        client = self._coordinator.client
-
-        html = await client._fetch("/resetrouter.html")
-        if not html:
-            _LOGGER.error("Reboot: could not fetch /resetrouter.html")
-            return
-
-        match = _SESSION_KEY_RE.search(html)
-        if not match:
-            _LOGGER.error("Reboot: sessionKey not found in /resetrouter.html")
-            return
-
-        session_key = match.group(1)
-        _LOGGER.debug("Reboot: sessionKey=%s", session_key)
-        await client._fetch(f"/rebootinfo.cgi?sessionKey={session_key}")
-        _LOGGER.info("Reboot command sent to router")
+        await self._coordinator.client.async_reboot()
