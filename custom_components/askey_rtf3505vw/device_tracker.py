@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import AskeyCoordinator
@@ -21,14 +22,23 @@ async def async_setup_entry(
 ) -> None:
     coordinator: AskeyCoordinator = hass.data[DOMAIN][entry.entry_id]
     tracked: set[str] = set()
+    initialized = False
 
     @callback
     def _add_new_devices() -> None:
-        """Create a tracker entity for every MAC not yet tracked."""
+        nonlocal initialized
         new_macs = [mac for mac in coordinator.data if mac not in tracked]
         if new_macs:
             tracked.update(new_macs)
             async_add_entities([AskeyDeviceTracker(coordinator, mac) for mac in new_macs])
+            if initialized:
+                for mac in new_macs:
+                    dev = coordinator.data[mac]
+                    hass.bus.async_fire(
+                        f"{DOMAIN}_device_connected",
+                        {"mac": mac, "hostname": dev.hostname, "ip": dev.ip},
+                    )
+        initialized = True
 
     _add_new_devices()
     entry.async_on_unload(coordinator.async_add_listener(_add_new_devices))
@@ -43,9 +53,24 @@ class AskeyDeviceTracker(CoordinatorEntity[AskeyCoordinator], ScannerEntity):
         super().__init__(coordinator)
         self._mac = mac
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{mac}"
+        # Initialise hostname cache from current coordinator data if available.
+        dev = coordinator.data.get(mac)
+        self._cached_hostname: str | None = (
+            dev.hostname if dev and dev.hostname and dev.hostname != mac else None
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Update hostname cache whenever new data arrives."""
+        dev = self._device
+        if dev and dev.hostname and dev.hostname != self._mac:
+            self._cached_hostname = dev.hostname
+        super()._handle_coordinator_update()
 
     @property
     def name(self) -> str:
+        if self._cached_hostname:
+            return self._cached_hostname
         dev = self._device
         if dev and dev.hostname and dev.hostname != self._mac:
             return dev.hostname
@@ -53,7 +78,13 @@ class AskeyDeviceTracker(CoordinatorEntity[AskeyCoordinator], ScannerEntity):
 
     @property
     def is_connected(self) -> bool:
-        return self._mac in self.coordinator.data
+        if self._mac in self.coordinator.data:
+            return True
+        last_seen = self.coordinator.last_seen.get(self._mac)
+        if last_seen is None or self.coordinator.consider_home == 0:
+            return False
+        elapsed = (dt_util.utcnow() - last_seen).total_seconds()
+        return elapsed < self.coordinator.consider_home
 
     @property
     def mac_address(self) -> str:
@@ -62,7 +93,7 @@ class AskeyDeviceTracker(CoordinatorEntity[AskeyCoordinator], ScannerEntity):
     @property
     def hostname(self) -> str | None:
         dev = self._device
-        return dev.hostname if dev else None
+        return dev.hostname if dev else self._cached_hostname
 
     @property
     def ip_address(self) -> str | None:

@@ -23,6 +23,8 @@ ENDPOINT_INFO = "/info.html"
 
 SESSION_COOKIE = "sessionID"
 
+_LOGIN_INDICATORS = ("loginPassword", "te_acceso_router")
+
 IFACE_WIFI_24 = "wl0"
 IFACE_WIFI_24_GUEST = "wl0.1"
 IFACE_WIFI_5 = "wl1"
@@ -30,6 +32,14 @@ IFACE_WIFI_5 = "wl1"
 _LOGGER = logging.getLogger(__name__)
 _MAC_RE = re.compile(r"^([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}$")
 _SESSION_KEY_RE = re.compile(r"var sessionKey='(\d+)'")
+
+
+class SessionExpiredError(Exception):
+    """Raised when the router returns the login page instead of requested data."""
+
+
+def _is_login_page(html: str) -> bool:
+    return any(indicator in html for indicator in _LOGIN_INDICATORS)
 
 
 def _is_valid_mac(value: str) -> bool:
@@ -233,8 +243,13 @@ class AskeyRouterClient:
         try:
             resp = await self._session.get(f"{self._base_url}{path}", headers=headers)
             if resp.status == 200:
-                return await resp.text()
+                text = await resp.text()
+                if _is_login_page(text):
+                    raise SessionExpiredError(f"Session expired — login page returned for {path}")
+                return text
             _LOGGER.debug("%s → HTTP %s", path, resp.status)
+        except SessionExpiredError:
+            raise
         except Exception as err:  # noqa: BLE001
             _LOGGER.error("Request to %s failed: %s", path, err)
         return None

@@ -7,23 +7,27 @@
         "data": {
           "host": "Dirección IP del router",
           "password": "Contraseña",
-          "scan_interval": "Intervalo de escaneo (segundos)"
+          "scan_interval": "Intervalo de escaneo (segundos)",
+          "consider_home": "Tiempo de gracia de presencia (segundos)"
         },
         "data_description": {
           "host": "Normalmente 192.168.1.1",
           "password": "La contraseña impresa en la pegatina del router",
-          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)"
+          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)",
+          "consider_home": "Segundos antes de marcar un dispositivo como ausente tras perder la señal. Usa 0 para desactivar."
         }
       },
       "reconfigure": {
         "title": "Actualiza la configuración de {host}",
-        "description": "Modifica la contraseña o el intervalo de escaneo. Para cambiar la IP del router elimina la integración y vuelve a añadirla.",
+        "description": "Modifica la contraseña o los parámetros de polling. Para cambiar la IP del router elimina la integración y vuelve a añadirla.",
         "data": {
           "password": "Contraseña",
-          "scan_interval": "Intervalo de escaneo (segundos)"
+          "scan_interval": "Intervalo de escaneo (segundos)",
+          "consider_home": "Tiempo de gracia de presencia (segundos)"
         },
         "data_description": {
-          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)"
+          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)",
+          "consider_home": "Segundos antes de marcar un dispositivo como ausente tras perder la señal. Usa 0 para desactivar."
         }
       },
       "reauth_confirm": {
@@ -41,7 +45,23 @@
     },
     "abort": {
       "already_configured": "Este router ya está configurado.",
-      "reauth_successful": "Reautenticación correcta."
+      "reauth_successful": "Reautenticación correcta.",
+      "reconfigure_successful": "Configuración actualizada correctamente."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones",
+        "data": {
+          "scan_interval": "Intervalo de escaneo (segundos)",
+          "consider_home": "Tiempo de gracia de presencia (segundos)"
+        },
+        "data_description": {
+          "scan_interval": "Con qué frecuencia se consulta el router (mínimo 10 s)",
+          "consider_home": "Segundos antes de marcar un dispositivo como ausente tras perder la señal. Usa 0 para desactivar."
+        }
+      }
     }
   }
 }

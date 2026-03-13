@@ -7,23 +7,27 @@
         "data": {
           "host": "Router IP address",
           "password": "Password",
-          "scan_interval": "Scan interval (seconds)"
+          "scan_interval": "Scan interval (seconds)",
+          "consider_home": "Home grace period (seconds)"
         },
         "data_description": {
           "host": "Usually 192.168.1.1",
           "password": "The password printed on the router label",
-          "scan_interval": "How often to poll the router (minimum 10 s)"
+          "scan_interval": "How often to poll the router (minimum 10 s)",
+          "consider_home": "Seconds before marking a device as away after it loses connection. Use 0 to disable."
         }
       },
       "reconfigure": {
         "title": "Update configuration for {host}",
-        "description": "Update the password or scan interval. To change the router IP, remove the integration and add it again.",
+        "description": "Update the password or polling settings. To change the router IP, remove the integration and add it again.",
         "data": {
           "password": "Password",
-          "scan_interval": "Scan interval (seconds)"
+          "scan_interval": "Scan interval (seconds)",
+          "consider_home": "Home grace period (seconds)"
         },
         "data_description": {
-          "scan_interval": "How often to poll the router (minimum 10 s)"
+          "scan_interval": "How often to poll the router (minimum 10 s)",
+          "consider_home": "Seconds before marking a device as away after it loses connection. Use 0 to disable."
         }
       },
       "reauth_confirm": {
@@ -41,7 +45,23 @@
     },
     "abort": {
       "already_configured": "This router is already configured.",
-      "reauth_successful": "Re-authentication successful."
+      "reauth_successful": "Re-authentication successful.",
+      "reconfigure_successful": "Configuration updated successfully."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "scan_interval": "Scan interval (seconds)",
+          "consider_home": "Home grace period (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the router (minimum 10 s)",
+          "consider_home": "Seconds before marking a device as away after it loses connection. Use 0 to disable."
+        }
+      }
     }
   }
 }

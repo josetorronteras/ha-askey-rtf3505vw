@@ -9,8 +9,15 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
+from homeassistant.core import callback
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_CONSIDER_HOME,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_CONSIDER_HOME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 from .router import DEFAULT_HOST, AskeyRouterClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,6 +29,9 @@ STEP_USER_SCHEMA = vol.Schema(
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
             int, vol.Range(min=10, max=3600)
         ),
+        vol.Optional(CONF_CONSIDER_HOME, default=DEFAULT_CONSIDER_HOME): vol.All(
+            int, vol.Range(min=0, max=3600)
+        ),
     }
 )
 
@@ -30,6 +40,9 @@ STEP_RECONFIGURE_SCHEMA = vol.Schema(
         vol.Required(CONF_PASSWORD): str,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
             int, vol.Range(min=10, max=3600)
+        ),
+        vol.Optional(CONF_CONSIDER_HOME, default=DEFAULT_CONSIDER_HOME): vol.All(
+            int, vol.Range(min=0, max=3600)
         ),
     }
 )
@@ -53,6 +66,12 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> AskeyOptionsFlowHandler:
+        """Return the options flow handler."""
+        return AskeyOptionsFlowHandler()
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -74,7 +93,11 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if ok:
                     return self.async_create_entry(
                         title=f"Askey RTF3505VW ({host})",
-                        data=user_input,
+                        data={CONF_HOST: host, CONF_PASSWORD: password},
+                        options={
+                            CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
+                            CONF_CONSIDER_HOME: user_input[CONF_CONSIDER_HOME],
+                        },
                     )
                 errors["base"] = "invalid_auth"
 
@@ -87,7 +110,7 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Handle reconfiguration of an existing entry (password and scan interval only).
+        """Handle reconfiguration of an existing entry (password and options only).
 
         The host is intentionally not reconfigurable — changing it would mean
         pointing to a different router, which requires a fresh setup.
@@ -107,15 +130,31 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if ok:
                     return self.async_update_reload_and_abort(
                         reconfigure_entry,
-                        data_updates=user_input,
+                        data_updates={CONF_PASSWORD: password},
+                        options_updates={
+                            CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
+                            CONF_CONSIDER_HOME: user_input[CONF_CONSIDER_HOME],
+                        },
                     )
                 errors["base"] = "invalid_auth"
+
+        # Pre-fill from current data and options (with fallback for migration)
+        current_options = {
+            CONF_SCAN_INTERVAL: reconfigure_entry.options.get(
+                CONF_SCAN_INTERVAL,
+                reconfigure_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ),
+            CONF_CONSIDER_HOME: reconfigure_entry.options.get(
+                CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME
+            ),
+            CONF_PASSWORD: reconfigure_entry.data[CONF_PASSWORD],
+        }
 
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
                 STEP_RECONFIGURE_SCHEMA,
-                reconfigure_entry.data,
+                current_options,
             ),
             errors=errors,
             description_placeholders={"host": reconfigure_entry.data[CONF_HOST]},
@@ -155,4 +194,37 @@ class AskeyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=STEP_REAUTH_SCHEMA,
             errors=errors,
             description_placeholders={"host": reauth_entry.data[CONF_HOST]},
+        )
+
+
+class AskeyOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options for the Askey RTF3505VW integration."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        current_scan = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
+        current_consider = self.config_entry.options.get(
+            CONF_CONSIDER_HOME, DEFAULT_CONSIDER_HOME
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_SCAN_INTERVAL, default=current_scan): vol.All(
+                        int, vol.Range(min=10, max=3600)
+                    ),
+                    vol.Optional(CONF_CONSIDER_HOME, default=current_consider): vol.All(
+                        int, vol.Range(min=0, max=3600)
+                    ),
+                }
+            ),
         )

@@ -4,10 +4,12 @@ DOMAIN = "askey_rtf3505vw"
 
 # Config entry keys
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_CONSIDER_HOME = "consider_home"
 
 # Defaults
 DEFAULT_HOST = "192.168.1.1"
 DEFAULT_SCAN_INTERVAL = 300  # seconds
+DEFAULT_CONSIDER_HOME = 180  # seconds
 
 # Sensor unique IDs
 SENSOR_TOTAL = "devices_total"
