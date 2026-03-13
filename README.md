@@ -45,6 +45,10 @@ One `device_tracker` entity per detected device. Created dynamically and persist
 | Password | — | Password printed on the router label |
 | Scan interval | `300 s` | How often to poll the router (minimum 10 s) |
 
+## Branding
+
+The integration logo (`images/logo.png`) must be submitted to the [Home Assistant brands repository](https://github.com/home-assistant/brands) under `custom_integrations/askey_rtf3505vw/` for it to appear in the HA UI. Until then, HA will show a generic icon.
+
 ## Technical notes
 
 - The integration uses its own `aiohttp` session with `force_close=True` because the router rejects keep-alive connections.
