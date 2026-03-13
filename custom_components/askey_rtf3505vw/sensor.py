@@ -19,8 +19,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
-    IFACE_WIFI_24,
-    IFACE_WIFI_5,
     SENSOR_GUEST,
     SENSOR_TOTAL,
     SENSOR_UPTIME,
@@ -29,7 +27,7 @@ from .const import (
     SENSOR_WIRED,
 )
 from .coordinator import AskeyCoordinator
-from .router import RouterDevice
+from .router import IFACE_WIFI_24, IFACE_WIFI_5, RouterDevice
 
 
 @dataclass(frozen=True, kw_only=True)

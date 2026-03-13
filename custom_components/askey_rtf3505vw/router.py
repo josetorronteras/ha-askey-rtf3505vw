@@ -7,17 +7,25 @@ from dataclasses import dataclass, field
 
 from bs4 import BeautifulSoup
 
-from .const import (
-    DEFAULT_HOST,
-    ENDPOINT_ARP,
-    ENDPOINT_DHCP,
-    ENDPOINT_INFO,
-    ENDPOINT_LOGIN,
-    ENDPOINT_WIFI,
-    ENDPOINT_WIFI_SWITCH_WL0,
-    ENDPOINT_WIFI_SWITCH_WL1,
-    SESSION_COOKIE,
-)
+# ---------------------------------------------------------------------------
+# Router network constants (self-contained, no HA dependency)
+# ---------------------------------------------------------------------------
+
+DEFAULT_HOST = "192.168.1.1"
+
+ENDPOINT_LOGIN = "/te_acceso_router.cgi"
+ENDPOINT_DHCP = "/dhcpinfo.html"
+ENDPOINT_ARP = "/arpview.cmd"
+ENDPOINT_WIFI = "/wlstationlist.cmd"
+ENDPOINT_WIFI_SWITCH_WL0 = "/wlswitchinterface0.wl"
+ENDPOINT_WIFI_SWITCH_WL1 = "/wlswitchinterface1.wl"
+ENDPOINT_INFO = "/info.html"
+
+SESSION_COOKIE = "sessionID"
+
+IFACE_WIFI_24 = "wl0"
+IFACE_WIFI_24_GUEST = "wl0.1"
+IFACE_WIFI_5 = "wl1"
 
 _LOGGER = logging.getLogger(__name__)
 _MAC_RE = re.compile(r"^([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}$")

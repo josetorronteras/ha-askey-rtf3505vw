@@ -10,8 +10,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_HOST, DEFAULT_SCAN_INTERVAL, DOMAIN
-from .router import AskeyRouterClient
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .router import DEFAULT_HOST, AskeyRouterClient
 
 _LOGGER = logging.getLogger(__name__)
 
