@@ -1,7 +1,7 @@
 {
   "domain": "askey_rtf3505vw",
   "name": "Askey RTF3505VW",
-  "codeowners": [],
+  "codeowners": ["@josetorronteras"],
   "config_flow": true,
   "documentation": "https://github.com/josetorronteras/ha-askey-rtf3505vw",
   "integration_type": "hub",
