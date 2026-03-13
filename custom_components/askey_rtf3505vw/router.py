@@ -210,7 +210,7 @@ class AskeyRouterClient:
                         devices[dev.mac].interface = dev.interface
                     if dev.ssid:
                         devices[dev.mac].ssid = dev.ssid
-                    if dev.rssi:
+                    if dev.rssi != 0:
                         devices[dev.mac].rssi = dev.rssi
                 else:
                     devices[dev.mac] = dev

@@ -91,7 +91,7 @@ class AskeyDeviceTracker(CoordinatorEntity[AskeyCoordinator], ScannerEntity):
             attrs["dhcp_expires"] = dev.dhcp_expires
         if dev.ssid:
             attrs["ssid"] = dev.ssid
-        if dev.rssi:
+        if dev.rssi != 0:
             attrs["rssi"] = dev.rssi
         return attrs
 

@@ -127,7 +127,7 @@ class AskeyDeviceCountSensor(CoordinatorEntity[AskeyCoordinator], SensorEntity):
                 "hostname": dev.hostname,
                 "mac": dev.mac,
                 "ip": dev.ip,
-                **({"rssi": dev.rssi} if dev.rssi else {}),
+                **({"rssi": dev.rssi} if dev.rssi != 0 else {}),
                 **({"ssid": dev.ssid} if dev.ssid else {}),
             }
             for dev in sorted(
