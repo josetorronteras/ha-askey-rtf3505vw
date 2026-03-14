@@ -11,10 +11,11 @@ Custom integration for Home Assistant that exposes data from the **Askey RTF3505
 
 ### Via HACS (recommended)
 
-1. In HACS, go to **Custom repositories** and add `https://github.com/josetorronteras/ha-askey-rtf3505vw` as an **Integration**.
-2. Install **Askey RTF3505VW** from HACS.
-3. Restart Home Assistant.
-4. Go to **Settings → Devices & Services → Add Integration** and search for "Askey RTF3505VW".
+1. In HACS, click the three-dot menu (⋮) in the top right and select **Custom repositories**.
+2. Paste `https://github.com/josetorronteras/ha-askey-rtf3505vw` and select **Integration** as the category. Click **Add**.
+3. Search for **Askey RTF3505VW** in HACS and install it.
+4. Restart Home Assistant.
+5. Go to **Settings → Devices & Services → Add Integration** and search for "Askey RTF3505VW".
 
 ### Manual
 
