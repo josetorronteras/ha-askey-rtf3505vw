@@ -5,7 +5,7 @@ from homeassistant.components.device_tracker import SourceType
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
@@ -121,10 +121,8 @@ class AskeyDeviceTracker(CoordinatorEntity[AskeyCoordinator], ScannerEntity):
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
-            name="Askey RTF3505VW",
-            manufacturer="Askey",
-            model="RTF3505VW",
+            connections={(CONNECTION_NETWORK_MAC, self._mac)},
+            via_device=(DOMAIN, self.coordinator.config_entry.entry_id),
         )
 
     @property
