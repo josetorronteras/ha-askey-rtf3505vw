@@ -35,6 +35,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         self.info: RouterInfo = RouterInfo()
         self.consider_home: int = consider_home
         self.last_seen: dict[str, datetime] = {}
+        self._consecutive_failures: int = 0
 
     async def _async_setup(self) -> None:
         """Run once during async_config_entry_first_refresh.
@@ -55,7 +56,10 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
 
         If the router returns the login page (session expired) or any other
         error occurs, attempts a single re-login before giving up.
-        Raises UpdateFailed so HA marks entities as unavailable.
+
+        A single transient failure returns cached data silently to avoid brief
+        "unavailable" flicker in the UI. Only after two consecutive failures is
+        UpdateFailed raised (which marks entities unavailable).
         """
         try:
             devices = await self.client.async_get_devices()
@@ -64,12 +68,20 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
             _LOGGER.debug("Session expired, re-logging in")
             try:
                 if not await self.client.async_login():
+                    self._consecutive_failures += 1
+                    if self._consecutive_failures < 2:
+                        _LOGGER.warning("Re-login failed (attempt %d), keeping cached data", self._consecutive_failures)
+                        return self.data or {}
                     raise UpdateFailed("Session expired and re-login failed")
                 devices = await self.client.async_get_devices()
                 self.info = await self.client.async_get_info()
             except UpdateFailed:
                 raise
             except Exception as retry_err:
+                self._consecutive_failures += 1
+                if self._consecutive_failures < 2:
+                    _LOGGER.warning("Fetch failed after re-login (attempt %d): %s, keeping cached data", self._consecutive_failures, retry_err)
+                    return self.data or {}
                 raise UpdateFailed(
                     f"Could not fetch data after re-login: {retry_err}"
                 ) from retry_err
@@ -77,16 +89,25 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
             _LOGGER.debug("Fetch failed (%s), attempting re-login", err)
             try:
                 if not await self.client.async_login():
+                    self._consecutive_failures += 1
+                    if self._consecutive_failures < 2:
+                        _LOGGER.warning("Re-login failed (attempt %d), keeping cached data", self._consecutive_failures)
+                        return self.data or {}
                     raise UpdateFailed("Session expired and re-login failed")
                 devices = await self.client.async_get_devices()
                 self.info = await self.client.async_get_info()
             except UpdateFailed:
                 raise
             except Exception as retry_err:
+                self._consecutive_failures += 1
+                if self._consecutive_failures < 2:
+                    _LOGGER.warning("Fetch failed after re-login (attempt %d): %s, keeping cached data", self._consecutive_failures, retry_err)
+                    return self.data or {}
                 raise UpdateFailed(
                     f"Could not fetch data from router: {retry_err}"
                 ) from retry_err
 
+        self._consecutive_failures = 0
         now = dt_util.utcnow()
         for mac in devices:
             self.last_seen[mac] = now
