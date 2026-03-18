@@ -189,23 +189,34 @@ class AskeyRouterClient:
         return True
 
     async def async_get_devices(self) -> dict[str, RouterDevice]:
-        """Return {mac: RouterDevice} for every device currently on the network."""
+        """Return {mac: RouterDevice} for every device currently on the network.
+
+        Raises RuntimeError if both primary data sources (DHCP and ARP) fail,
+        so the coordinator can distinguish "0 devices" from "router not
+        responding".
+        """
         devices: dict[str, RouterDevice] = {}
+        sources_ok = 0
 
         # 1. DHCP leases — primary source for hostnames and IPs
         html = await self._fetch(ENDPOINT_DHCP)
         if html:
+            sources_ok += 1
             for dev in _parse_dhcp(html):
                 devices[dev.mac] = dev
 
         # 2. ARP table — catches devices with static IPs not in DHCP
         html = await self._fetch(ENDPOINT_ARP)
         if html:
+            sources_ok += 1
             for dev in _parse_arp(html):
                 if dev.mac not in devices:
                     devices[dev.mac] = dev
                 else:
                     devices[dev.mac].interface = dev.interface
+
+        if sources_ok == 0:
+            raise RuntimeError("Both DHCP and ARP fetches failed — router may be unreachable")
 
         # 3. WiFi station lists — must switch radio before each fetch.
         #    The router exposes a single /wlstationlist.cmd endpoint; the active
