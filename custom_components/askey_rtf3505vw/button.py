@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import AskeyCoordinator
@@ -20,7 +21,7 @@ async def async_setup_entry(
     async_add_entities([AskeyRebootButton(coordinator)])
 
 
-class AskeyRebootButton(ButtonEntity):
+class AskeyRebootButton(CoordinatorEntity[AskeyCoordinator], ButtonEntity):
     """Button that reboots the router."""
 
     _attr_name = "Reiniciar router"
@@ -28,18 +29,18 @@ class AskeyRebootButton(ButtonEntity):
     _attr_icon = "mdi:restart"
 
     def __init__(self, coordinator: AskeyCoordinator) -> None:
-        self._coordinator = coordinator
+        super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_reboot"
 
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            identifiers={(DOMAIN, self._coordinator.config_entry.entry_id)},
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
             name="Askey RTF3505VW",
             manufacturer="Askey",
             model="RTF3505VW",
-            sw_version=self._coordinator.info.software_version or None,
+            sw_version=self.coordinator.info.software_version or None,
         )
 
     async def async_press(self) -> None:
-        await self._coordinator.client.async_reboot()
+        await self.coordinator.client.async_reboot()
