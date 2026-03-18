@@ -244,12 +244,16 @@ class AskeyRouterClient:
         _LOGGER.debug("Found %d device(s) on the network", len(devices))
         return devices
 
-    async def async_get_info(self) -> RouterInfo:
-        """Fetch system info (uptime, firmware version) from /info.html."""
+    async def async_get_info(self) -> RouterInfo | None:
+        """Fetch system info (uptime, firmware version) from /info.html.
+
+        Returns None when the page cannot be fetched so the caller can
+        keep the previous good data instead of overwriting it with empty values.
+        """
         html = await self._fetch(ENDPOINT_INFO)
         if html:
             return _parse_info(html)
-        return RouterInfo()
+        return None
 
     async def _fetch(self, path: str) -> str | None:
         """GET a router page and return its HTML body, or None on failure."""

@@ -65,7 +65,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         """
         try:
             devices = await self.client.async_get_devices()
-            self.info = await self.client.async_get_info()
+            self.info = await self.client.async_get_info() or self.info
         except SessionExpiredError:
             _LOGGER.warning("Session expired, re-logging in")
             try:
@@ -76,7 +76,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
                         return self.data or {}
                     raise UpdateFailed("Session expired and re-login failed")
                 devices = await self.client.async_get_devices()
-                self.info = await self.client.async_get_info()
+                self.info = await self.client.async_get_info() or self.info
             except UpdateFailed:
                 raise
             except Exception as retry_err:
@@ -97,7 +97,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
                         return self.data or {}
                     raise UpdateFailed("Session expired and re-login failed")
                 devices = await self.client.async_get_devices()
-                self.info = await self.client.async_get_info()
+                self.info = await self.client.async_get_info() or self.info
             except UpdateFailed:
                 raise
             except Exception as retry_err:
