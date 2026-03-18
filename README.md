@@ -1,5 +1,7 @@
 # Askey RTF3505VW — Home Assistant Integration
 
+> **[Leer en español](README.es.md)**
+
 Custom integration for Home Assistant that exposes data from the **Askey RTF3505VW** router (distributed by Movistar Spain) as native entities.
 
 ## Requirements
