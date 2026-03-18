@@ -4,8 +4,12 @@ from pathlib import Path
 
 import pytest
 
-# Import router.py directly to avoid triggering the HA-dependent __init__.py.
-# router.py has no homeassistant dependencies so this is safe.
+# Register HA stubs BEFORE importing the component so modules that depend
+# on homeassistant (coordinator, const, etc.) resolve against our stubs.
+HA_STUBS_DIR = Path(__file__).parent / "ha_stubs"
+sys.path.insert(0, str(HA_STUBS_DIR))
+
+# Import component modules directly to avoid triggering the HA-dependent __init__.py.
 COMPONENT_DIR = Path(__file__).parent.parent / "custom_components" / "askey_rtf3505vw"
 sys.path.insert(0, str(COMPONENT_DIR))
 
