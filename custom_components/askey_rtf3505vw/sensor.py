@@ -40,35 +40,35 @@ class AskeySensorDescription(SensorEntityDescription):
 SENSOR_DESCRIPTIONS: tuple[AskeySensorDescription, ...] = (
     AskeySensorDescription(
         key=SENSOR_TOTAL,
-        name="Dispositivos conectados",
+        translation_key=SENSOR_TOTAL,
         icon="mdi:devices",
         state_class=SensorStateClass.MEASUREMENT,
         filter_fn=lambda d: True,
     ),
     AskeySensorDescription(
         key=SENSOR_WIRED,
-        name="Dispositivos por cable",
+        translation_key=SENSOR_WIRED,
         icon="mdi:ethernet",
         state_class=SensorStateClass.MEASUREMENT,
         filter_fn=lambda d: d.is_wired,
     ),
     AskeySensorDescription(
         key=SENSOR_WIFI_24,
-        name="WiFi 2.4 GHz",
+        translation_key=SENSOR_WIFI_24,
         icon="mdi:wifi",
         state_class=SensorStateClass.MEASUREMENT,
         filter_fn=lambda d: d.interface == IFACE_WIFI_24,
     ),
     AskeySensorDescription(
         key=SENSOR_WIFI_5,
-        name="WiFi 5 GHz",
+        translation_key=SENSOR_WIFI_5,
         icon="mdi:wifi",
         state_class=SensorStateClass.MEASUREMENT,
         filter_fn=lambda d: d.interface == IFACE_WIFI_5,
     ),
     AskeySensorDescription(
         key=SENSOR_GUEST,
-        name="Red de invitados",
+        translation_key=SENSOR_GUEST,
         icon="mdi:wifi-star",
         state_class=SensorStateClass.MEASUREMENT,
         filter_fn=lambda d: d.is_guest,
@@ -151,7 +151,7 @@ class AskeyUptimeSensor(CoordinatorEntity[AskeyCoordinator], SensorEntity):
     """Reports router uptime in seconds."""
 
     _attr_has_entity_name = True
-    _attr_name = "Uptime"
+    _attr_translation_key = SENSOR_UPTIME
     _attr_icon = "mdi:timer-outline"
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
