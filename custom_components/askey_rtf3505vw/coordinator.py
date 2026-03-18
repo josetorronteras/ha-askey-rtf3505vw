@@ -64,50 +64,18 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         UpdateFailed raised (which marks entities unavailable).
         """
         try:
-            devices = await self.client.async_get_devices()
-            self.info = await self.client.async_get_info() or self.info
-        except SessionExpiredError:
-            _LOGGER.warning("Session expired, re-logging in")
-            try:
-                if not await self.client.async_login():
-                    self._consecutive_failures += 1
-                    if self._consecutive_failures < 2:
-                        _LOGGER.warning("Re-login failed (attempt %d), keeping cached data", self._consecutive_failures)
-                        return self.data or {}
-                    raise UpdateFailed("Session expired and re-login failed")
-                devices = await self.client.async_get_devices()
-                self.info = await self.client.async_get_info() or self.info
-            except UpdateFailed:
-                raise
-            except Exception as retry_err:
-                self._consecutive_failures += 1
-                if self._consecutive_failures < 2:
-                    _LOGGER.warning("Fetch failed after re-login (attempt %d): %s, keeping cached data", self._consecutive_failures, retry_err)
-                    return self.data or {}
-                raise UpdateFailed(
-                    f"Could not fetch data after re-login: {retry_err}"
-                ) from retry_err
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning("Fetch failed (%s), attempting re-login", err)
-            try:
-                if not await self.client.async_login():
-                    self._consecutive_failures += 1
-                    if self._consecutive_failures < 2:
-                        _LOGGER.warning("Re-login failed (attempt %d), keeping cached data", self._consecutive_failures)
-                        return self.data or {}
-                    raise UpdateFailed("Session expired and re-login failed")
-                devices = await self.client.async_get_devices()
-                self.info = await self.client.async_get_info() or self.info
-            except UpdateFailed:
-                raise
-            except Exception as retry_err:
-                self._consecutive_failures += 1
-                if self._consecutive_failures < 2:
-                    _LOGGER.warning("Fetch failed after re-login (attempt %d): %s, keeping cached data", self._consecutive_failures, retry_err)
-                    return self.data or {}
-                raise UpdateFailed(
-                    f"Could not fetch data from router: {retry_err}"
-                ) from retry_err
+            return await self._fetch_data()
+        except (SessionExpiredError, Exception) as err:
+            _LOGGER.warning(
+                "%s, attempting re-login",
+                "Session expired" if isinstance(err, SessionExpiredError) else f"Fetch failed ({err})",
+            )
+            return await self._relogin_and_fetch()
+
+    async def _fetch_data(self) -> dict[str, RouterDevice]:
+        """Fetch devices and info, update state, and return the device dict."""
+        devices = await self.client.async_get_devices()
+        self.info = await self.client.async_get_info() or self.info
 
         self._consecutive_failures = 0
         now = dt_util.utcnow()
@@ -115,3 +83,30 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
             self.last_seen[mac] = now
 
         return devices
+
+    async def _relogin_and_fetch(self) -> dict[str, RouterDevice]:
+        """Re-login and retry fetching data, with graceful degradation.
+
+        On the first failure returns cached data; on the second raises
+        UpdateFailed so entities are marked unavailable.
+        """
+        try:
+            if not await self.client.async_login():
+                return self._handle_failure("Re-login failed")
+            return await self._fetch_data()
+        except UpdateFailed:
+            raise
+        except Exception as err:
+            return self._handle_failure(f"Fetch failed after re-login: {err}", err)
+
+    def _handle_failure(
+        self, message: str, cause: Exception | None = None,
+    ) -> dict[str, RouterDevice]:
+        """Increment failure counter; return cached data or raise UpdateFailed."""
+        self._consecutive_failures += 1
+        if self._consecutive_failures < 2:
+            _LOGGER.warning("%s (attempt %d), keeping cached data", message, self._consecutive_failures)
+            return self.data or {}
+        if cause:
+            raise UpdateFailed(message) from cause
+        raise UpdateFailed(message)
