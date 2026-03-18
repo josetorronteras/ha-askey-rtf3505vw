@@ -24,6 +24,7 @@ async def async_setup_entry(
 class AskeyRebootButton(CoordinatorEntity[AskeyCoordinator], ButtonEntity):
     """Button that reboots the router."""
 
+    _attr_has_entity_name = True
     _attr_name = "Reiniciar router"
     _attr_device_class = ButtonDeviceClass.RESTART
     _attr_icon = "mdi:restart"
