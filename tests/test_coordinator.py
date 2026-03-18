@@ -6,11 +6,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from coordinator import AskeyCoordinator
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from router import RouterDevice, RouterInfo, SessionExpiredError
 
 # ---------------------------------------------------------------------------
-# Minimal HA stubs so we can import and instantiate the coordinator without
-# a full Home Assistant installation.
+# Helpers
 # ---------------------------------------------------------------------------
 
 _FAKE_ENTRY_ID = "test_entry_id"
@@ -22,8 +24,6 @@ def _make_coordinator(
     consider_home: int = 180,
 ):
     """Build an AskeyCoordinator with a mocked HA and client."""
-    # Lazy import so the HA stubs are already in place.
-    from coordinator import AskeyCoordinator
 
     hass = MagicMock()
     hass.loop = None  # DataUpdateCoordinator checks this
@@ -80,7 +80,6 @@ class TestAsyncSetup:
         )
         coordinator = _make_coordinator(client)
 
-        from homeassistant.exceptions import ConfigEntryNotReady
         with pytest.raises(ConfigEntryNotReady):
             await coordinator._async_setup()
 
@@ -91,7 +90,6 @@ class TestAsyncSetup:
         )
         coordinator = _make_coordinator(client)
 
-        from homeassistant.exceptions import ConfigEntryAuthFailed
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_setup()
 
@@ -225,7 +223,6 @@ class TestHandleFailure:
         coordinator = _make_coordinator(client)
         coordinator._consecutive_failures = 1  # Already had one failure
 
-        from homeassistant.helpers.update_coordinator import UpdateFailed
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
