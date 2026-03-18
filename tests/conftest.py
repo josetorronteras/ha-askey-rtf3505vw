@@ -32,7 +32,6 @@ for _mod_name in ("const", "router", "coordinator"):
             submodule_search_locations=[],
         )
         _mod = importlib.util.module_from_spec(_spec)
-        _mod.__package__ = _PKG_NAME
         sys.modules[_full] = _mod
         _spec.loader.exec_module(_mod)
         # Also register as top-level so `from coordinator import ...` works.
