@@ -103,6 +103,7 @@ def _device_info(coordinator: AskeyCoordinator) -> DeviceInfo:
 class AskeyDeviceCountSensor(CoordinatorEntity[AskeyCoordinator], SensorEntity):
     """Counts network devices matching a filter (total, wired, WiFi band, guest)."""
 
+    _attr_has_entity_name = True
     entity_description: AskeySensorDescription
 
     def __init__(
@@ -149,6 +150,7 @@ class AskeyDeviceCountSensor(CoordinatorEntity[AskeyCoordinator], SensorEntity):
 class AskeyUptimeSensor(CoordinatorEntity[AskeyCoordinator], SensorEntity):
     """Reports router uptime in seconds."""
 
+    _attr_has_entity_name = True
     _attr_name = "Uptime"
     _attr_icon = "mdi:timer-outline"
     _attr_device_class = SensorDeviceClass.DURATION
