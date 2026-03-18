@@ -33,7 +33,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         )
         self.client = client
         self.info: RouterInfo = RouterInfo()
-        self.consider_home: int = consider_home
+        self.consider_home: int = max(consider_home, scan_interval)
         self.last_seen: dict[str, datetime] = {}
         self._consecutive_failures: int = 0
 
