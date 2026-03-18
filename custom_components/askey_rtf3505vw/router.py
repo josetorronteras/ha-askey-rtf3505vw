@@ -5,6 +5,7 @@ import logging
 import re
 from dataclasses import dataclass
 
+import aiohttp
 from bs4 import BeautifulSoup
 
 # ---------------------------------------------------------------------------
@@ -121,38 +122,42 @@ class AskeyRouterClient:
         }
 
     async def async_login(self) -> bool:
-        """Log in to the router. Returns True on success."""
-        try:
-            # Step 1: GET / to obtain the initial sessionID cookie
-            resp = await self._session.get(
-                self._base_url, headers=self._headers, allow_redirects=True
-            )
-            session_id = self._extract_cookie(resp, SESSION_COOKIE)
-            if not session_id:
-                _LOGGER.error("Login step 1 failed: no %s in response", SESSION_COOKIE)
-                return False
+        """Log in to the router. Returns True on success.
 
-            # Step 2: POST credentials
-            resp2 = await self._session.post(
-                f"{self._base_url}{ENDPOINT_LOGIN}",
-                data={"loginPassword": self._password},
-                headers={
-                    **self._headers,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Cookie": f"{SESSION_COOKIE}={session_id}",
-                    "Origin": self._base_url,
-                    "Referer": f"{self._base_url}/te_acceso_router.html",
-                },
-                allow_redirects=True,
-            )
-            new_session_id = self._extract_cookie(resp2, SESSION_COOKIE)
-            self._session_id = new_session_id or session_id
-            _LOGGER.debug("Login OK — %s=%s", SESSION_COOKIE, self._session_id)
-            return True
+        Raises connection-related exceptions (aiohttp.ClientError, OSError,
+        TimeoutError) so the caller can distinguish "router unreachable" from
+        "wrong credentials".  Returns False only for authentication failures.
+        """
+        timeout = aiohttp.ClientTimeout(total=15)
 
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Login failed: %s", err)
+        # Step 1: GET / to obtain the initial sessionID cookie
+        resp = await self._session.get(
+            self._base_url, headers=self._headers, allow_redirects=True,
+            timeout=timeout,
+        )
+        session_id = self._extract_cookie(resp, SESSION_COOKIE)
+        if not session_id:
+            _LOGGER.error("Login step 1 failed: no %s in response", SESSION_COOKIE)
             return False
+
+        # Step 2: POST credentials
+        resp2 = await self._session.post(
+            f"{self._base_url}{ENDPOINT_LOGIN}",
+            data={"loginPassword": self._password},
+            headers={
+                **self._headers,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Cookie": f"{SESSION_COOKIE}={session_id}",
+                "Origin": self._base_url,
+                "Referer": f"{self._base_url}/te_acceso_router.html",
+            },
+            allow_redirects=True,
+            timeout=timeout,
+        )
+        new_session_id = self._extract_cookie(resp2, SESSION_COOKIE)
+        self._session_id = new_session_id or session_id
+        _LOGGER.debug("Login OK — %s=%s", SESSION_COOKIE, self._session_id)
+        return True
 
     async def async_close(self) -> None:
         """Close the underlying aiohttp session."""
@@ -241,7 +246,10 @@ class AskeyRouterClient:
         if self._session_id:
             headers["Cookie"] = f"{SESSION_COOKIE}={self._session_id}"
         try:
-            resp = await self._session.get(f"{self._base_url}{path}", headers=headers)
+            timeout = aiohttp.ClientTimeout(total=15)
+            resp = await self._session.get(
+                f"{self._base_url}{path}", headers=headers, timeout=timeout,
+            )
             if resp.status == 200:
                 text = await resp.text()
                 if _is_login_page(text):
