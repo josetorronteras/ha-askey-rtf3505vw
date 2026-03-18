@@ -47,8 +47,10 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         try:
             success = await self.client.async_login()
         except Exception as err:
+            _LOGGER.warning("Cannot connect to router during setup: %s", err)
             raise ConfigEntryNotReady(f"Cannot connect to router: {err}") from err
         if not success:
+            _LOGGER.warning("Login returned False — invalid credentials or missing session cookie")
             raise ConfigEntryAuthFailed("Invalid credentials")
 
     async def _async_update_data(self) -> dict[str, RouterDevice]:
@@ -65,7 +67,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
             devices = await self.client.async_get_devices()
             self.info = await self.client.async_get_info()
         except SessionExpiredError:
-            _LOGGER.debug("Session expired, re-logging in")
+            _LOGGER.warning("Session expired, re-logging in")
             try:
                 if not await self.client.async_login():
                     self._consecutive_failures += 1
@@ -86,7 +88,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
                     f"Could not fetch data after re-login: {retry_err}"
                 ) from retry_err
         except Exception as err:  # noqa: BLE001
-            _LOGGER.debug("Fetch failed (%s), attempting re-login", err)
+            _LOGGER.warning("Fetch failed (%s), attempting re-login", err)
             try:
                 if not await self.client.async_login():
                     self._consecutive_failures += 1
