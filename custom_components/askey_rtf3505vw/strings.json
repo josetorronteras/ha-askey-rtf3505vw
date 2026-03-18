@@ -49,6 +49,33 @@
       "reconfigure_successful": "Configuración actualizada correctamente."
     }
   },
+  "entity": {
+    "sensor": {
+      "devices_total": {
+        "name": "Connected devices"
+      },
+      "devices_wired": {
+        "name": "Wired devices"
+      },
+      "devices_wifi_24": {
+        "name": "WiFi 2.4 GHz"
+      },
+      "devices_wifi_5": {
+        "name": "WiFi 5 GHz"
+      },
+      "devices_guest": {
+        "name": "Guest network"
+      },
+      "uptime": {
+        "name": "Uptime"
+      }
+    },
+    "button": {
+      "reboot": {
+        "name": "Reboot router"
+      }
+    }
+  },
   "options": {
     "step": {
       "init": {
