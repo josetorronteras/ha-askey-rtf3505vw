@@ -202,7 +202,7 @@ class TestHandleFailure:
         """First failure should return cached data, not raise."""
         client = _make_client(
             async_get_devices=AsyncMock(side_effect=RuntimeError("fail")),
-            async_login=AsyncMock(return_value=False),
+            async_login=AsyncMock(side_effect=OSError("unreachable")),
         )
         coordinator = _make_coordinator(client)
         coordinator.data = {
@@ -218,7 +218,7 @@ class TestHandleFailure:
         """Second consecutive failure should raise UpdateFailed."""
         client = _make_client(
             async_get_devices=AsyncMock(side_effect=RuntimeError("fail")),
-            async_login=AsyncMock(return_value=False),
+            async_login=AsyncMock(side_effect=OSError("unreachable")),
         )
         coordinator = _make_coordinator(client)
         coordinator._consecutive_failures = 1  # Already had one failure
@@ -231,13 +231,27 @@ class TestHandleFailure:
         """First failure with no cached data returns empty dict."""
         client = _make_client(
             async_get_devices=AsyncMock(side_effect=RuntimeError("fail")),
-            async_login=AsyncMock(return_value=False),
+            async_login=AsyncMock(side_effect=OSError("unreachable")),
         )
         coordinator = _make_coordinator(client)
         coordinator.data = None
 
         result = await coordinator._async_update_data()
         assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_relogin_rejected_raises_config_entry_auth_failed(self):
+        """When re-login returns False (bad credentials), raise ConfigEntryAuthFailed."""
+        from homeassistant.exceptions import ConfigEntryAuthFailed
+
+        client = _make_client(
+            async_get_devices=AsyncMock(side_effect=RuntimeError("fail")),
+            async_login=AsyncMock(return_value=False),
+        )
+        coordinator = _make_coordinator(client)
+
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_success_after_failure_resets_counter(self):

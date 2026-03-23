@@ -156,6 +156,13 @@ class AskeyRouterClient:
         )
         new_session_id = self._extract_cookie(resp2, SESSION_COOKIE)
         self._session_id = new_session_id or session_id
+
+        # Step 3: Verify login by checking the response is not the login page
+        body = await resp2.text()
+        if _is_login_page(body):
+            _LOGGER.error("Login failed: router still showing login page after POST")
+            return False
+
         _LOGGER.debug("Login OK — %s=%s", SESSION_COOKIE, self._session_id)
         return True
 
@@ -274,7 +281,7 @@ class AskeyRouterClient:
         except SessionExpiredError:
             raise
         except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Request to %s failed: %s", path, err)
+            _LOGGER.error("Request to %s failed: [%s] %s", path, type(err).__name__, err)
         return None
 
     @staticmethod
