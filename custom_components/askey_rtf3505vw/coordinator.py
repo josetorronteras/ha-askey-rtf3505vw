@@ -91,8 +91,16 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         UpdateFailed so entities are marked unavailable.
         """
         try:
-            if not await self.client.async_login():
-                return self._handle_failure("Re-login failed")
+            login_ok = await self.client.async_login()
+        except Exception as err:
+            return self._handle_failure(f"Re-login connection error: {err}", err)
+
+        if not login_ok:
+            raise ConfigEntryAuthFailed(
+                "Router rejected credentials — please reconfigure the integration"
+            )
+
+        try:
             return await self._fetch_data()
         except UpdateFailed:
             raise
