@@ -4,25 +4,42 @@ permissions:
   contents: write
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.2.3 or 1.2.3-beta)"
+        required: true
 
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-      - name: Get version from tag
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Set version
+        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Validate version format
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "Invalid version format. Use X.Y.Z or X.Y.Z-suffix (e.g. 1.2.3 or 1.2.3-beta)"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          if git ls-remote --tags origin v$VERSION | grep -q "refs/tags/v$VERSION"; then
+            echo "Tag v$VERSION already exists"
+            exit 1
+          fi
 
       - name: Update manifest.json version
         run: |
-          jq --arg v "${{ steps.version.outputs.version }}" \
+          jq --arg v "$VERSION" \
             '.version = $v' \
             custom_components/askey_rtf3505vw/manifest.json > tmp.json \
           && mv tmp.json custom_components/askey_rtf3505vw/manifest.json
@@ -32,10 +49,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add custom_components/askey_rtf3505vw/manifest.json
-          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}" || true
-          git push origin HEAD:main
+          git commit -m "chore: bump version to $VERSION"
+
+      - name: Push changes
+        run: git push origin HEAD:main
+
+      - name: Create tag
+        run: |
+          git tag v$VERSION
+          git push origin v$VERSION
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
           generate_release_notes: true
+          prerelease: ${{ contains(env.VERSION, '-') }}
