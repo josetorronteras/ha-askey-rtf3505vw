@@ -25,10 +25,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: requirements-test.txt
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
-        run: pip install -r requirements-test.txt
+        run: pip install ".[dev]"
 
       - name: Run ruff
         run: ruff check custom_components/ --output-format=github
@@ -45,10 +45,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: requirements-test.txt
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
-        run: pip install -r requirements-test.txt
+        run: pip install ".[dev]"
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
