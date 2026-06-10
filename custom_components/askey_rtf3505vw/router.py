@@ -24,7 +24,7 @@ ENDPOINT_INFO = "/info.html"
 
 SESSION_COOKIE = "sessionID"
 
-_LOGIN_INDICATORS = ("loginPassword", "te_acceso_router")
+_LOGIN_INDICATORS = ('name="loginPassword"',)
 
 IFACE_WIFI_24 = "wl0"
 IFACE_WIFI_24_GUEST = "wl0.1"
@@ -138,6 +138,15 @@ class AskeyRouterClient:
         session_id = self._extract_cookie(resp, SESSION_COOKIE)
         if not session_id:
             _LOGGER.error("Login step 1 failed: no %s in response", SESSION_COOKIE)
+            return False
+        if session_id == "0":
+            # Router returns sessionID=0 when no admin slot is available
+            # (another browser/integration holds the single allowed session).
+            _LOGGER.error(
+                "Router returned sessionID=0 — another admin session is active. "
+                "Close any open browser session to the router and try again, "
+                "or reboot the router."
+            )
             return False
 
         # Step 2: POST credentials

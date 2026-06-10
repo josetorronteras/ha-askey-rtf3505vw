@@ -224,3 +224,16 @@ class TestIsLoginPage:
 
     def test_minimal_login_indicator(self):
         assert _is_login_page('<input name="loginPassword">') is True
+
+    def test_success_redirect_page_is_not_login(self):
+        # Real router response on successful POST: a small JS-redirect page
+        # that mentions neither the login form nor its action URL.
+        body = (
+            "<html><head>"
+            "<meta HTTP-EQUIV='Pragma' CONTENT='no-cache'>"
+            "<title></title>"
+            "<script language='javascript'>"
+            "window.top.location = \"/\";"
+            "</script>"
+        )
+        assert _is_login_page(body) is False
