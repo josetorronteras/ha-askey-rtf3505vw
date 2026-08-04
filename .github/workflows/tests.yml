@@ -33,10 +33,6 @@ jobs:
       - name: Run ruff
         run: ruff check custom_components/ --output-format=github
 
-      - name: Show ruff fix diff (debug)
-        if: always()
-        run: ruff check custom_components/ --diff || true
-
   test:
     name: Tests
     runs-on: ubuntu-latest

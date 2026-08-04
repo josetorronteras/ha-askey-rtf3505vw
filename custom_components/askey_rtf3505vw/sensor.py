@@ -22,12 +22,12 @@ from .const import (
     SENSOR_GUEST,
     SENSOR_TOTAL,
     SENSOR_UPTIME,
-    SENSOR_WIFI_24,
     SENSOR_WIFI_5,
+    SENSOR_WIFI_24,
     SENSOR_WIRED,
 )
 from .coordinator import AskeyCoordinator
-from .router import IFACE_WIFI_24, IFACE_WIFI_5, RouterDevice
+from .router import IFACE_WIFI_5, IFACE_WIFI_24, RouterDevice
 
 
 @dataclass(frozen=True, kw_only=True)
