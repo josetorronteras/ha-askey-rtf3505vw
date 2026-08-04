@@ -1,8 +1,8 @@
 """Sensor platform for the Askey RTF3505VW integration."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -22,12 +22,12 @@ from .const import (
     SENSOR_GUEST,
     SENSOR_TOTAL,
     SENSOR_UPTIME,
-    SENSOR_WIFI_24,
     SENSOR_WIFI_5,
+    SENSOR_WIFI_24,
     SENSOR_WIRED,
 )
 from .coordinator import AskeyCoordinator
-from .router import IFACE_WIFI_24, IFACE_WIFI_5, RouterDevice
+from .router import IFACE_WIFI_5, IFACE_WIFI_24, RouterDevice
 
 
 @dataclass(frozen=True, kw_only=True)

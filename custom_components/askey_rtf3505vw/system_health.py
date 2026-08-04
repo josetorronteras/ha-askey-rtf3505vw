@@ -20,7 +20,7 @@ async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
     """Return system health info for all configured entries."""
     info: dict[str, Any] = {}
 
-    for entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
+    for coordinator in hass.data.get(DOMAIN, {}).values():
         host = coordinator.config_entry.data[CONF_HOST]
         info[host] = {
             "reachable": coordinator.last_update_success,
