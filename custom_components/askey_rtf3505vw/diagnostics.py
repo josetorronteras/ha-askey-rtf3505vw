@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .coordinator import AskeyCoordinator
-from .router import IFACE_WIFI_24, IFACE_WIFI_5
+from .router import IFACE_WIFI_5, IFACE_WIFI_24
 
 TO_REDACT = {CONF_PASSWORD}
 

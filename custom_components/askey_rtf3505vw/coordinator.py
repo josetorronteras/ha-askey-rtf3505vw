@@ -65,7 +65,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         """
         try:
             return await self._fetch_data()
-        except (SessionExpiredError, Exception) as err:
+        except (SessionExpiredError, Exception) as err:  # noqa: BLE001
             _LOGGER.warning(
                 "%s, attempting re-login",
                 "Session expired" if isinstance(err, SessionExpiredError) else f"Fetch failed ({err})",
@@ -92,7 +92,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
         """
         try:
             login_ok = await self.client.async_login()
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             return self._handle_failure(f"Re-login connection error: {err}", err)
 
         if not login_ok:
@@ -104,7 +104,7 @@ class AskeyCoordinator(DataUpdateCoordinator[dict[str, RouterDevice]]):
             return await self._fetch_data()
         except UpdateFailed:
             raise
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             return self._handle_failure(f"Fetch failed after re-login: {err}", err)
 
     def _handle_failure(
